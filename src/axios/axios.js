@@ -29,7 +29,6 @@ const getToken = async () => {
   }
 };
 
-// Axios instansiyasi yaratish
 const instance = axios.create({
   baseURL: "https://api.spotify.com/v1",
 });
@@ -39,11 +38,11 @@ instance.interceptors.request.use(
     let token = localStorage.getItem("access_token");
 
     if (!token) {
-      token = await getToken(); // Tokenni olish
+      token = await getToken();
     }
 
     if (token) {
-      config.headers["Authorization"] = token; // Tokenni headersga qo'shish
+      config.headers["Authorization"] = token;
     }
 
     return config;

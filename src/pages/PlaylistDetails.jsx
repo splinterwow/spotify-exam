@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import axios from "../axios/axios";
 
-// musiqa qoyilganidagi animation
+// musiqa qoyilganidagi animationn
 const PlayingAnimation = () => (
   <div className="flex items-center space-x-0.5 mr-2">
     <div className="w-0.5 h-2 bg-green-500 animate-music-bar-1"></div>
@@ -92,7 +92,7 @@ const PlaylistDetails = () => {
         setPlaylist(playlistResponse.data);
         setTracks(playlistResponse.data.tracks.items);
 
-        // Load liked tracks from localStorage
+
         const storedLikedTracks =
           JSON.parse(localStorage.getItem(`likedTracks_${id}`)) || [];
         setLikedTracks(storedLikedTracks);

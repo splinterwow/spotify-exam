@@ -34,7 +34,6 @@ function LeftSidebar() {
     <div className="flex h-screen fixed left-0 top-0 bottom-0">
       <div className="w-64 bg-black text-gray-300 p-6 flex flex-col">
         <div className="space-y-6">
-          {/* Main Menu Items */}
           <div
             className="flex items-center space-x-4 cursor-pointer hover:text-white"
             onClick={handleHome}
@@ -53,12 +52,10 @@ function LeftSidebar() {
         </div>
 
         <div className="mt-8 space-y-6">
-          {/* Playlist Create */}
           <div className="flex items-center space-x-4 cursor-pointer hover:text-white">
             <PlusSquare size={24} />
             <span>Create Playlist</span>
           </div>
-          {/* Liked Songs */}
           <div
             onClick={handleLikeClick}
             className="flex items-center space-x-4 cursor-pointer hover:text-white"
@@ -77,13 +74,11 @@ function LeftSidebar() {
             msOverflowStyle: "none",
           }}
         >
-          {/* Hide Scrollbar */}
           <style>{`
             div::-webkit-scrollbar {
               display: none; /* Chrome va Safari uchun scrollbar'ni yashirish */
             }
           `}</style>
-          {/* Playlists */}
           {playlists.map((playlist, index) => (
             <div key={index} className="py-2 cursor-pointer hover:text-white">
               {playlist}
