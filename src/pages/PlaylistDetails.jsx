@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Play,
   Pause,
@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import axios from "../axios/axios";
 
+// musiqa qoyilganidagi animation
 const PlayingAnimation = () => (
   <div className="flex items-center space-x-0.5 mr-2">
     <div className="w-0.5 h-2 bg-green-500 animate-music-bar-1"></div>
@@ -72,6 +73,7 @@ const PlaylistItem = ({
 );
 
 const PlaylistDetails = () => {
+  const navigate = useNavigate();
   const { id } = useParams();
   const [playlist, setPlaylist] = useState(null);
   const [tracks, setTracks] = useState([]);
@@ -156,7 +158,10 @@ const PlaylistDetails = () => {
   return (
     <div className="bg-gradient-to-b from-indigo-900 to-black text-white min-h-screen">
       <div className="p-8">
-        <ChevronLeft className="w-8 h-8 bg-black bg-opacity-50 rounded-full p-1 mb-4 cursor-pointer" />
+        <ChevronLeft
+          onClick={() => navigate("/")}
+          className="w-8 h-8 bg-black bg-opacity-50 rounded-full p-1 mb-4 cursor-pointer hover:bg-opacity-70"
+        />
         <div className="flex items-start mb-6">
           <img
             src={playlist.images[0]?.url}
@@ -175,16 +180,19 @@ const PlaylistDetails = () => {
         </div>
 
         <div className="flex items-center mb-8">
-          <button onClick={handlePlayPause} className="mr-6">
+          <button
+            onClick={handlePlayPause}
+            className="mr-6 hover:scale-105 transition-transform"
+          >
             {isPlaying ? (
               <Pause className="w-16 h-16 text-green-500" />
             ) : (
               <Play className="w-16 h-16 text-green-500" />
             )}
           </button>
-          <Heart className="w-8 h-8 mr-6 cursor-pointer" />
-          <Download className="w-8 h-8 mr-6 cursor-pointer" />
-          <MoreHorizontal className="w-8 h-8 cursor-pointer" />
+          <Heart className="w-8 h-8 mr-6 cursor-pointer hover:text-green-500" />
+          <Download className="w-8 h-8 mr-6 cursor-pointer hover:text-green-500" />
+          <MoreHorizontal className="w-8 h-8 cursor-pointer hover:text-green-500" />
         </div>
 
         <div className="mb-8">
@@ -207,7 +215,6 @@ const PlaylistDetails = () => {
                 .map((artist) => artist.name)
                 .join(", ")}
               album={item.track.album.name}
-              
               duration={formatDuration(item.track.duration_ms)}
               preview_url={item.track.preview_url}
               onPlay={handlePlay}
@@ -227,20 +234,22 @@ const PlaylistDetails = () => {
         <div className="fixed bottom-0 left-0 right-0 bg-gray-900 p-4">
           <div className="flex items-center justify-between">
             <div>
-
               <p className="font-bold">{currentTrack.title}</p>
               <p className="text-sm text-gray-400">{currentTrack.artist}</p>
             </div>
             <div className="flex items-center">
-              <SkipBack className="w-6 h-6 mr-4 cursor-pointer" />
-              <button onClick={handlePlayPause}>
+              <SkipBack className="w-6 h-6 mr-4 cursor-pointer hover:text-green-500" />
+              <button
+                onClick={handlePlayPause}
+                className="hover:scale-105 transition-transform"
+              >
                 {isPlaying ? (
                   <Pause className="w-10 h-10 text-white" />
                 ) : (
                   <Play className="w-10 h-10 text-white" />
                 )}
               </button>
-              <SkipForward className="w-6 h-6 ml-4 cursor-pointer" />
+              <SkipForward className="w-6 h-6 ml-4 cursor-pointer hover:text-green-500" />
             </div>
           </div>
         </div>

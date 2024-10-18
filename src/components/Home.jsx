@@ -3,10 +3,13 @@ import { useEffect, useState } from "react";
 import React from "react";
 import axios from "../axios/axios";
 import { useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function Home() {
+  const success = () => toast.success("now you can see all albums");
   const navigate = useNavigate();
-  const [greeting, setGreeting] = useState("");
+
   const [data, setData] = useState([]);
   const [mixesData, setMixesData] = useState([]);
   const [madeData, setMadeData] = useState([]);
@@ -14,26 +17,45 @@ function Home() {
   const [jumpData, setJumpData] = useState([]);
   const [yoursData, setYoursData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [counter, setCounter] = useState(1);
 
-  // Vaqtga qarab salomlashish
+  const [all, setAll] = useState(4);
+  const [all1, setAll1] = useState(4);
+  const [all2, setAll2] = useState(4);
+  const [all3, setAll3] = useState(4);
+  const [all4, setAll4] = useState(4);
 
-  //salom slash
-  useEffect(() => {
-    const hour = new Date().getHours();
-    if (hour >= 5 && hour < 12) setGreeting("Good morning");
-    else if (hour >= 12 && hour < 18) setGreeting("Good afternoon");
-    else setGreeting("Good evening");
-  }, []);
+  const getToken = async () => {
+    try {
+      const response = await axios.post("/auth/token", {});
 
-  // Ma'lumotlarni yuklash uchun funksiyalar
+      if (response.data.access_token) {
+        localStorage.setItem("token", response.data.access_token);
+        axios.defaults.headers.common[
+          "Authorization"
+        ] = `Bearer ${response.data.access_token}`;
+      }
+    } catch (error) {
+      console.error("Token olishda xato:", error);
+      navigate("/login");
+    }
+  };
+
+  const handlePlaylistClick = (playlistId) => {
+    navigate(`/playlist/${playlistId}`);
+  };
+
   const fetchDataOne = async () => {
     try {
       const response = await axios.get("/browse/featured-playlists");
       setData(response.data.playlists.items);
     } catch (error) {
-      console.error("Error fetching featured playlists:", error);
-      setError("Failed to load featured playlists");
+      if (error.response && error.response.status === 401) {
+        await getToken();
+        setCounter((prev) => prev + 1);
+      } else {
+        console.log("Xato yuz berdi:", error);
+      }
     }
   };
 
@@ -42,8 +64,12 @@ function Home() {
       const response = await axios.get("/browse/categories/toplists/playlists");
       setMixesData(response.data.playlists.items);
     } catch (error) {
-      console.error("Error fetching top mixes:", error);
-      setError("Failed to load top mixes");
+      if (error.response && error.response.status === 401) {
+        await getToken();
+        setCounter((prev) => prev + 1);
+      } else {
+        console.log("Xato yuz berdi:", error);
+      }
     }
   };
 
@@ -54,8 +80,12 @@ function Home() {
       );
       setMadeData(response.data.playlists.items);
     } catch (error) {
-      console.error("Error fetching made for you playlists:", error);
-      setError("Failed to load made for you playlists");
+      if (error.response && error.response.status === 401) {
+        await getToken();
+        setCounter((prev) => prev + 1);
+      } else {
+        console.log("Xato yuz berdi:", error);
+      }
     }
   };
 
@@ -66,8 +96,12 @@ function Home() {
       );
       setPlayedData(response.data.playlists.items);
     } catch (error) {
-      console.error("Error fetching recently played:", error);
-      setError("Failed to load recently played");
+      if (error.response && error.response.status === 401) {
+        await getToken();
+        setCounter((prev) => prev + 1);
+      } else {
+        console.log("Xato yuz berdi:", error);
+      }
     }
   };
 
@@ -78,8 +112,12 @@ function Home() {
       );
       setJumpData(response.data.playlists.items);
     } catch (error) {
-      console.error("Error fetching jump back playlists:", error);
-      setError("Failed to load jump back playlists");
+      if (error.response && error.response.status === 401) {
+        await getToken();
+        setCounter((prev) => prev + 1);
+      } else {
+        console.log("Xato yuz berdi:", error);
+      }
     }
   };
 
@@ -90,15 +128,17 @@ function Home() {
       );
       setYoursData(response.data.playlists.items);
     } catch (error) {
-      console.error("Error fetching your playlists:", error);
-      setError("Failed to load your playlists");
+      if (error.response && error.response.status === 401) {
+        await getToken();
+        setCounter((prev) => prev + 1);
+      } else {
+        console.log("Xato yuz berdi:", error);
+      }
     }
   };
 
-  // Barcha ma'lumotlarni yuklash
   useEffect(() => {
-    const fetchAllData = async () => {
-      setLoading(true);
+    const fetchData = async () => {
       try {
         await Promise.all([
           fetchDataOne(),
@@ -109,20 +149,14 @@ function Home() {
           fetchDataSix(),
         ]);
       } catch (error) {
-        console.error("Error fetching data:", error);
-        setError("Failed to load some content");
+        console.error("Ma'lumotlarni olishda xato:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAllData();
-  }, []);
-
-  // Playlist ga o'tish uchun handler
-  const handlePlaylistClick = (playlistId) => {
-    navigate(`/playlist/${playlistId}`);
-  };
+    fetchData();
+  }, [counter]);
 
   if (loading) {
     return (
@@ -132,25 +166,24 @@ function Home() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-gradient-to-b from-blue-950 to-gray-950">
-        <div className="text-white text-xl">{error}</div>
-      </div>
-    );
-  }
-
   return (
     <div className="bg-gradient-to-b from-blue-950 to-gray-950 text-white p-8">
+      <ToastContainer />
       {/* Navigation Controls */}
       <div className="flex items-center mb-6">
-        <ChevronLeft className="w-8 h-8 bg-black bg-opacity-50 mr-2 hover:bg-slate-500 transition-all p-1 rounded-full cursor-pointer" />
-        <ChevronRight className="w-8 h-8 bg-black bg-opacity-50 hover:bg-slate-500 transition-all p-1 rounded-full cursor-pointer" />
+        <ChevronLeft
+          className="w-8 h-8 bg-black bg-opacity-50 mr-2 hover:bg-slate-500 transition-all p-1 rounded-full cursor-pointer"
+          onClick={() => navigate(-1)}
+        />
+        <ChevronRight
+          className="w-8 h-8 bg-black bg-opacity-50 hover:bg-slate-500 transition-all p-1 rounded-full cursor-pointer"
+          onClick={() => navigate(1)}
+        />
       </div>
 
-      {/* Featured Playlists */}
+      {/* Featured Playlists Grid */}
       <div>
-        <h1 className="text-3xl font-bold">{greeting}</h1>
+        <h1 className="text-3xl font-bold">Good afternoon</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
           {data?.slice(0, 6).map((item, index) => (
             <div
@@ -173,91 +206,222 @@ function Home() {
         </div>
       </div>
 
-      {/* Top Mixes Section */}
-      <Section
-        title="Your top mixes"
-        data={mixesData}
-        onPlaylistClick={handlePlaylistClick}
-      />
-
-      {/* Made For You Section */}
-      <Section
-        title="Made for you"
-        data={madeData}
-        onPlaylistClick={handlePlaylistClick}
-      />
-
-      {/* Recently Played Section */}
-      <Section
-        title="Recently played"
-        data={playedData}
-        onPlaylistClick={handlePlaylistClick}
-      />
-
-      {/* Jump Back In Section */}
-      <Section
-        title="Jump back in"
-        data={jumpData}
-        onPlaylistClick={handlePlaylistClick}
-      />
-
-      {/* Uniquely Yours Section */}
-      <Section
-        title="UNIQUELY YOURS"
-        data={yoursData}
-        onPlaylistClick={handlePlaylistClick}
-      />
-    </div>
-  );
-}
-
-// Section komponenti
-function Section({ title, data, onPlaylistClick }) {
-  return (
-    <div className="mt-8">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-semibold">{title}</h2>
-        <span className="cursor-pointer hover:underline text-sm font-semibold">
-          Show all
-        </span>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mt-4">
-        {data?.slice(0, 5).map((item, index) => {
-          const maxLength = 39;
-          const truncatedDescription =
-            item.description?.length > maxLength
-              ? item.description.slice(0, maxLength) + "..."
-              : item.description;
-
-          return (
-            <div
-              key={index}
-              className="bg-[#161838] p-4 rounded-lg cursor-pointer hover:bg-[#1f204d] transition-colors group"
-              onClick={() => onPlaylistClick(item.id)}
-            >
-              <div className="relative aspect-square mb-4 group">
-                <img
-                  className="rounded-lg w-full h-full object-cover"
-                  src={item.images[0]?.url || "https://picsum.photos/400"}
-                  alt={item.name}
-                />
-                <div className="absolute bottom-2 right-2 w-10 h-10 bg-green-500 rounded-full items-center justify-center hidden group-hover:flex shadow-lg">
-                  <svg
-                    className="w-5 h-5 text-black"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
+      {/* Your Top Mixes Section */}
+      <div className="mt-8">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-semibold">Your top mixes</h2>
+          <span
+            onClick={() => {
+              setAll(8);
+              success();
+            }}
+            className="cursor-pointer mr-16 hover:underline"
+          >
+            Show All
+          </span>
+        </div>
+        <div className="flex flex-wrap gap-8 mt-4">
+          {mixesData?.slice(0, all).map((item, index) => {
+            const maxLength = 20;
+            const truncatedDescription =
+              item.description.length > maxLength
+                ? item.description.slice(0, maxLength) + "... and more"
+                : item.description;
+            return (
+              <div
+                onClick={() => handlePlaylistClick(item.id)}
+                key={index}
+                className="cursor-pointer bg-[#161838] w-[200px] h-[324px] p-4 rounded-lg hover:bg-[#1c1f4a] transition-colors"
+              >
+                <div className="w-full h-[182px] bg-black rounded-md mb-4">
+                  <img
+                    className="w-full h-full object-cover rounded-md"
+                    src={item.images[0]?.url || "https://picsum.photos/400"}
+                    alt={item.name}
+                  />
+                </div>
+                <div className="font-semibold mb-1">{item.name}</div>
+                <div className="text-sm text-gray-400">
+                  {truncatedDescription}
                 </div>
               </div>
-              <div className="font-semibold mb-1 truncate">{item.name}</div>
-              <div className="text-sm text-gray-400 line-clamp-2">
-                {truncatedDescription}
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Made For You Section */}
+      <div className="mt-8">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-semibold">Made for you</h2>
+          <span
+            onClick={() => {
+              setAll4(8);
+              success();
+            }}
+            className="cursor-pointer mr-16 hover:underline"
+          >
+            Show All
+          </span>
+        </div>
+        <div className="flex flex-wrap gap-8 mt-4">
+          {madeData?.slice(0, all4).map((item, index) => {
+            const maxLength = 20;
+            const truncatedDescription =
+              item.description.length > maxLength
+                ? item.description.slice(0, maxLength) + "... and more"
+                : item.description;
+            return (
+              <div
+                onClick={() => handlePlaylistClick(item.id)}
+                key={index}
+                className="cursor-pointer bg-[#161838] w-[200px] h-[324px] p-4 rounded-lg hover:bg-[#1c1f4a] transition-colors"
+              >
+                <div className="w-full h-[182px] bg-black rounded-md mb-4">
+                  <img
+                    className="w-full h-full object-cover rounded-md"
+                    src={item.images[0]?.url || "https://picsum.photos/400"}
+                    alt={item.name}
+                  />
+                </div>
+                <div className="font-semibold mb-1">{item.name}</div>
+                <div className="text-sm text-gray-400">
+                  {truncatedDescription}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Recently Played Section */}
+      <div className="mt-8">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-semibold">Recently played</h2>
+          <span
+            onClick={() => {
+              setAll1(8);
+              success();
+            }}
+            className="cursor-pointer mr-16 hover:underline"
+          >
+            Show All
+          </span>
+        </div>
+        <div className="flex flex-wrap gap-8 mt-4">
+          {playedData?.slice(0, all1).map((item, index) => {
+            const maxLength = 20;
+            const truncatedDescription =
+              item.description.length > maxLength
+                ? item.description.slice(0, maxLength) + "... and more"
+                : item.description;
+            return (
+              <div
+                onClick={() => handlePlaylistClick(item.id)}
+                key={index}
+                className="cursor-pointer bg-[#161838] w-[200px] h-[324px] p-4 rounded-lg hover:bg-[#1c1f4a] transition-colors"
+              >
+                <div className="w-full h-[182px] bg-black rounded-md mb-4">
+                  <img
+                    className="w-full h-full object-cover rounded-md"
+                    src={item.images[0]?.url || "https://picsum.photos/400"}
+                    alt={item.name}
+                  />
+                </div>
+                <div className="font-semibold mb-1">{item.name}</div>
+                <div className="text-sm text-gray-400">
+                  {truncatedDescription}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Jump Back In Section */}
+      <div className="mt-8">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-semibold">Jump back in</h2>
+          <span
+            onClick={() => {
+              setAll2(8);
+              success();
+            }}
+            className="cursor-pointer mr-16 hover:underline"
+          >
+            Show All
+          </span>
+        </div>
+        <div className="flex flex-wrap gap-8 mt-4">
+          {jumpData?.slice(0, all2).map((item, index) => {
+            const maxLength = 20;
+            const truncatedDescription =
+              item.description.length > maxLength
+                ? item.description.slice(0, maxLength) + "... and more"
+                : item.description;
+            return (
+              <div
+                onClick={() => handlePlaylistClick(item.id)}
+                key={index}
+                className="cursor-pointer bg-[#161838] w-[200px] h-[324px] p-4 rounded-lg hover:bg-[#1c1f4a] transition-colors"
+              >
+                <div className="w-full h-[182px] bg-black rounded-md mb-4">
+                  <img
+                    className="w-full h-full object-cover rounded-md"
+                    src={item.images[0]?.url || "https://picsum.photos/400"}
+                    alt={item.name}
+                  />
+                </div>
+                <div className="font-semibold mb-1">{item.name}</div>
+                <div className="text-sm text-gray-400">
+                  {truncatedDescription}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="mt-8">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-semibold">UNIQUELY YOURS:</h2>
+          <span
+            onClick={() => {
+              setAll3(8);
+              success();
+            }}
+            className="cursor-pointer mr-16 hover:underline"
+          >
+            Show All
+          </span>
+        </div>
+        <div className="flex flex-wrap gap-8 mt-4">
+          {yoursData?.slice(0, all3).map((item, index) => {
+            const maxLength = 20;
+            const truncatedDescription =
+              item.description.length > maxLength
+                ? item.description.slice(0, maxLength) + "... and more"
+                : item.description;
+            return (
+              <div
+                onClick={() => navigate(`/playlist/${item.id}`)}
+                key={index}
+                className="cursor-pointer bg-[#161838] w-[200px] h-[324px] p-4 rounded-lg hover:bg-[#1c1f4a] transition-colors"
+              >
+                <div className="w-full h-[182px] bg-black rounded-md mb-4">
+                  <img
+                    src={item.images[0]?.url || "https://picsum.photos/400"}
+                    alt=""
+                  />
+                </div>
+                <div className="font-semibold mb-1">{item.name}</div>
+                <div className="text-sm text-gray-400">
+                  {truncatedDescription}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

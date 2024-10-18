@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Heart, Clock } from "lucide-react";
 
-const SpotifyInterface = () => {
+const Likes = () => {
   const [currentSong, setCurrentSong] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [likes, setLikes] = useState({
@@ -263,4 +263,4 @@ const SpotifyInterface = () => {
   );
 };
 
-export default SpotifyInterface;
+export default Likes;
