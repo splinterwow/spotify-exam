@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import Loader from "../components/Loader";
 import {
   Play,
   Pause,
@@ -90,9 +91,12 @@ const PlaylistDetails = () => {
         const playlistResponse = await axios.get(`/playlists/${id}`);
         setPlaylist(playlistResponse.data);
         setTracks(playlistResponse.data.tracks.items);
-        setLikedTracks(
-          new Array(playlistResponse.data.tracks.items.length).fill(false)
-        );
+
+        // Load liked tracks from localStorage
+        const storedLikedTracks =
+          JSON.parse(localStorage.getItem(`likedTracks_${id}`)) || [];
+        setLikedTracks(storedLikedTracks);
+
         setLoading(false);
       } catch (error) {
         console.error("Error fetching playlist:", error);
@@ -107,6 +111,9 @@ const PlaylistDetails = () => {
       audioRef.current.pause();
     };
   }, [id]);
+
+
+   localStorage.setItem(`likedTracks_${id}`, JSON.stringify(likedTracks));
 
   const handlePlay = (preview_url, title, artist) => {
     if (currentTrack && currentTrack.preview_url === preview_url) {
@@ -135,8 +142,12 @@ const PlaylistDetails = () => {
 
   const handleLike = (index) => {
     setLikedTracks((prev) => {
-      const newLikedTracks = [...prev];
-      newLikedTracks[index] = !newLikedTracks[index];
+      const newLikedTracks = prev.includes(index)
+        ? prev.filter((i) => i !== index)
+        : [...prev, index];
+
+      localStorage.setItem(`likedTracks_${id}`, JSON.stringify(newLikedTracks));
+
       return newLikedTracks;
     });
   };
@@ -148,7 +159,7 @@ const PlaylistDetails = () => {
   };
 
   if (loading) {
-    return <div className="text-white text-center mt-20">Loading...</div>;
+    return <Loader />;
   }
 
   if (error) {
@@ -224,7 +235,7 @@ const PlaylistDetails = () => {
                 currentTrack.preview_url === item.track.preview_url
               }
               onLike={handleLike}
-              isLiked={likedTracks[index]}
+              isLiked={likedTracks.includes(index)}
             />
           ))}
         </div>

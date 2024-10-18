@@ -4,6 +4,7 @@ import React from "react";
 import axios from "../axios/axios";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
+import Loader from "../components/Loader";
 import "react-toastify/dist/ReactToastify.css";
 
 function Home() {
@@ -25,21 +26,6 @@ function Home() {
   const [all3, setAll3] = useState(4);
   const [all4, setAll4] = useState(4);
 
-  const getToken = async () => {
-    try {
-      const response = await axios.post("/auth/token", {});
-
-      if (response.data.access_token) {
-        localStorage.setItem("token", response.data.access_token);
-        axios.defaults.headers.common[
-          "Authorization"
-        ] = `Bearer ${response.data.access_token}`;
-      }
-    } catch (error) {
-      console.error("Token olishda xato:", error);
-      navigate("/login");
-    }
-  };
 
   const handlePlaylistClick = (playlistId) => {
     navigate(`/playlist/${playlistId}`);
@@ -49,10 +35,14 @@ function Home() {
     try {
       const response = await axios.get("/browse/featured-playlists");
       setData(response.data.playlists.items);
+
+      if (response.status === 401) {
+        throw new Error("401");
+      }
     } catch (error) {
       if (error.response && error.response.status === 401) {
-        await getToken();
-        setCounter((prev) => prev + 1);
+        getToken();
+        setCounter(counter + 1);
       } else {
         console.log("Xato yuz berdi:", error);
       }
@@ -159,11 +149,7 @@ function Home() {
   }, [counter]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-gradient-to-b from-blue-950 to-gray-950">
-        <div className="text-white text-xl">Loading...</div>
-      </div>
-    );
+    return <Loader />;
   }
 
   return (
